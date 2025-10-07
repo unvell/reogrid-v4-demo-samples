@@ -70,7 +70,7 @@ namespace unvell.ReoGrid.Demo.PerformanceDemo
 		}
 
 		public static int RECORD_COUNT = 100000;
-		public static int COLUMN_COUNT = 12;
+		public static int COLUMN_COUNT = 230;
 
 		public FlightLogDataSource dataSource;
 
