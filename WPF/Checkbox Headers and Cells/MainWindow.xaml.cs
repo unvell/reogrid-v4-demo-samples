@@ -31,7 +31,7 @@ namespace unvell.ReoGrid.WPFDemo
 			sheet.Rows = 10;
 
 			// 10列使用 (0~9) を前提にヘッダーを設定
-			sheet.ColumnHeaders[0].Body = new CheckboxHeaderCell(); // 集約チェック
+			sheet.ColumnHeaders[0].Body = new CheckboxHeaderCell(grid); // 集約チェック
 			sheet.ColumnHeaders[1].Text = "ID";
 			sheet.ColumnHeaders[2].Text = "Name";
 			sheet.ColumnHeaders[3].Text = "Math";

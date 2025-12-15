@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Windows.Controls;
+using unvell.ReoGrid.Actions;
 using unvell.ReoGrid.CellTypes;
 using unvell.ReoGrid.Core.Header;
 using unvell.ReoGrid.Events;
@@ -20,6 +22,13 @@ namespace unvell.ReoGrid.WPFDemo
 		private CheckState state = CheckState.Unchecked;
 
 		private Rectangle boxRect = Rectangle.Zero;
+
+		public ReoGridControl Grid { get; private set; }
+
+		public CheckboxHeaderCell(ReoGridControl grid)
+		{
+			this.Grid = grid;
+		}
 
 		public override void OnSetup(IHeader header)
 		{
@@ -136,16 +145,31 @@ namespace unvell.ReoGrid.WPFDemo
 					{
 						cell.Body = new CheckBoxCell(value);
 					}
-					cell.Data = value;
 				}
 			}
 			finally
 			{
 				ws.ResumeDataChangedEvents();
 			}
+
+			if (Grid.UseCellUpdateActionForBuiltinCellTypes)
+			{
+				var data = new object[ws.RowCount, 1];
+				for (int r = 0; r < ws.RowCount; r++) data[r, 0] = value;
+				var action = new SetRangeDataAction(new RangePosition(0, col, ws.RowCount, 1), data);
+				Grid.DoAction(ws, action);
+			}
+			else
+			{
+				for (int r = 0; r < ws.RowCount; r++)
+				{
+					ws.SetCellData(r, col, value);
+				}
+			}
+
 			state = value ? CheckState.Checked : CheckState.Unchecked;
 		}
 
-		public override IHeaderBody Clone() => new CheckboxHeaderCell { state = this.state };
+		public override IHeaderBody Clone() => new CheckboxHeaderCell(Grid) { state = this.state };
 	}
 }
