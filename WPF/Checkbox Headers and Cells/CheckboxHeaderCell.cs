@@ -154,9 +154,7 @@ namespace unvell.ReoGrid.WPFDemo
 
 			if (Grid.UseCellUpdateActionForBuiltinCellTypes)
 			{
-				var data = new object[ws.RowCount, 1];
-				for (int r = 0; r < ws.RowCount; r++) data[r, 0] = value;
-				var action = new SetRangeDataAction(new RangePosition(0, col, ws.RowCount, 1), data);
+				var action = new UpdateAllCellsCheckboxAction(col, value);
 				Grid.DoAction(ws, action);
 			}
 			else
@@ -171,5 +169,50 @@ namespace unvell.ReoGrid.WPFDemo
 		}
 
 		public override IHeaderBody Clone() => new CheckboxHeaderCell(Grid) { state = this.state };
+	}
+
+	/// <summary>
+	/// Represents an undoable action that sets the checkbox value for all cells in a specified column of a worksheet.
+	/// </summary>
+	/// <remarks>This action updates the checkbox state for every cell in the target column and records the previous
+	/// values to support undo operations. Use this action to efficiently apply a bulk checkbox update and allow users to
+	/// revert the change if needed. The action is typically used in scenarios where a user selects or clears all
+	/// checkboxes in a column at once.</remarks>
+	class UpdateAllCellsCheckboxAction : WorksheetAction
+	{
+		private int columnIndex;
+		private bool value;
+		private Dictionary<Cell, bool> oldValues = new Dictionary<Cell, bool>();
+
+		public UpdateAllCellsCheckboxAction(int columnIndex, bool value)
+		{
+			this.columnIndex = columnIndex;
+			this.value = value;
+		}
+		public override void Do()
+		{
+			for (int r = 0; r < Worksheet.RowCount; r++)
+			{
+				var cell = Worksheet.GetCell(r, columnIndex);
+				if (cell != null)
+				{
+					var oldValue = Worksheet.GetCellData(r, columnIndex) as bool? ?? false;
+					oldValues[cell] = oldValue;
+					Worksheet.SetCellData(r, columnIndex, value);
+				}
+			}
+		}
+		public override void Undo()
+		{
+			foreach(var kv in oldValues)
+			{
+				kv.Key.Worksheet.SetCellData(kv.Key.Row, kv.Key.Column, kv.Value);
+			}
+		}
+
+		override public string GetName()
+		{
+			return "Update Cell Checkbox Values";
+		}
 	}
 }
